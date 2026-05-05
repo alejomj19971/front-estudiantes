@@ -11,21 +11,21 @@ export function StudentBottomNav() {
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 md:hidden
-                 bg-primary border-t border-primary/80 pb-safe"
+                 bg-surface border-t border-mid/15"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
       aria-label="Navegación principal"
     >
-      <div className="flex items-stretch justify-around h-15">
+      <div className="flex items-stretch justify-around h-16">
         {NAV_ITEMS.map(({ to, label, icon: Icon }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               [
-                'flex flex-col items-center justify-center gap-0.5',
-                'min-w-[44px] min-h-[60px] flex-1 px-1',
+                'flex flex-col items-center justify-center gap-1',
+                'min-w-[44px] flex-1 px-1',
                 'text-[10px] font-medium transition-colors duration-150',
-                isActive ? 'text-tertiary' : 'text-mid',
+                isActive ? 'text-primary' : 'text-mid',
               ].join(' ')
             }
           >
@@ -33,8 +33,8 @@ export function StudentBottomNav() {
               <>
                 <span
                   className={[
-                    'flex items-center justify-center w-8 h-8 rounded-xl transition-colors',
-                    isActive ? 'bg-tertiary/20' : '',
+                    'flex items-center justify-center w-9 h-9 rounded-xl transition-colors',
+                    isActive ? 'bg-tertiary/25 text-primary' : 'text-mid',
                   ].join(' ')}
                 >
                   <Icon size={20} />

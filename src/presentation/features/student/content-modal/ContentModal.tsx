@@ -1,6 +1,6 @@
 import { useEffect, lazy, Suspense } from 'react'
 import { createPortal } from 'react-dom'
-import { X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { X, ArrowRight, ArrowLeft } from 'lucide-react'
 import { useStudentProgressStore } from '@presentation/stores/studentProgressStore'
 import { ContentLoader } from './components/ContentLoader'
 import type { AnyContentData } from '@domain/shared/interfaces/ICourseContent'
@@ -21,6 +21,9 @@ const QuizContent = lazy(() =>
 interface ContentModalProps {
   content: AnyContentData
   courseId: string
+  currentStep: number
+  totalSteps: number
+  moduleName: string
   onClose: () => void
   onPrev?: () => void
   onNext?: () => void
@@ -31,6 +34,9 @@ interface ContentModalProps {
 export function ContentModal({
   content,
   courseId,
+  currentStep,
+  totalSteps,
+  moduleName,
   onClose,
   onPrev,
   onNext,
@@ -39,108 +45,117 @@ export function ContentModal({
 }: ContentModalProps) {
   const markContentComplete = useStudentProgressStore(s => s.markContentComplete)
 
-  /* Bloquear scroll del body al abrir */
   useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [])
 
-  /* Cerrar con Escape */
   useEffect(() => {
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
   }, [onClose])
 
-  const handleComplete = () => {
-    markContentComplete(courseId, content.id)
-  }
+  const handleComplete = () => markContentComplete(courseId, content.id)
 
   const renderContent = () => {
     switch (content.type) {
-      case 'video':
-        return <VideoContent data={content} onComplete={handleComplete} />
-      case 'image':
-        return <ImageContent data={content} onComplete={handleComplete} />
-      case 'text':
-        return <TextContent data={content} onComplete={handleComplete} />
-      case 'quiz':
-        return <QuizContent data={content} onComplete={handleComplete} />
+      case 'video': return <VideoContent data={content} onComplete={handleComplete} />
+      case 'image': return <ImageContent data={content} onComplete={handleComplete} />
+      case 'text':  return <TextContent  data={content} onComplete={handleComplete} />
+      case 'quiz':  return <QuizContent  data={content} onComplete={handleComplete} />
     }
   }
 
+  const progressPct = (currentStep / totalSteps) * 100
+
   return createPortal(
-    /* Overlay */
     <div
       className="fixed inset-0 z-[100] bg-neutral/70 backdrop-blur-sm
-                 flex items-end md:items-center md:justify-center"
+                 flex items-end md:items-center md:justify-center p-0 md:p-8"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="modal-title"
     >
-      {/* Panel */}
       <div
-        className="flex flex-col bg-surface w-full h-[92dvh]
-                   rounded-t-2xl md:rounded-2xl
-                   md:h-auto md:max-h-[85vh] md:w-[90vw] md:max-w-2xl
-                   shadow-2xl overflow-hidden"
+        className="bg-surface w-full h-[92dvh] rounded-t-3xl overflow-hidden flex flex-col
+                   md:rounded-3xl md:h-auto md:max-h-[88vh] md:w-full md:max-w-3xl
+                   shadow-2xl"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6 md:py-4
-                        bg-primary shrink-0">
-          <h2
-            id="modal-title"
-            className="text-sm md:text-base font-semibold text-tertiary line-clamp-1 flex-1"
-          >
-            {content.title}
-          </h2>
+        {/* ── §8.1 Barra de progreso ───────────────────────────── */}
+        <div className="flex items-center gap-4 px-6 pt-6 pb-4 shrink-0">
           <button
             onClick={onClose}
-            className="min-w-[44px] min-h-[44px] flex items-center justify-center
-                       rounded-full hover:bg-white/10 transition-colors text-mid
-                       hover:text-tertiary"
+            className="w-9 h-9 flex items-center justify-center rounded-full
+                       bg-surface-muted text-secondary hover:bg-mid/20
+                       transition-colors shrink-0"
             aria-label="Cerrar"
           >
-            <X size={20} />
+            <X size={16} />
           </button>
+
+          <div className="flex-1 h-2.5 rounded-full bg-mid/25 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-primary transition-all duration-500"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+
+          <span className="text-sm font-semibold text-secondary shrink-0">
+            {currentStep}/{totalSteps}
+          </span>
         </div>
 
-        {/* Contenido — área scrollable */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6">
+        {/* ── §8.2 Etiqueta de módulo ──────────────────────────── */}
+        {moduleName && (
+          <p className="px-6 text-xs font-bold text-secondary uppercase tracking-widest">
+            {moduleName}
+          </p>
+        )}
+
+        {/* ── §8.3 Título del contenido ───────────────────────── */}
+        <h2
+          id="modal-title"
+          className="px-6 mt-2 text-2xl md:text-3xl font-extrabold text-primary leading-snug"
+        >
+          {content.title}
+        </h2>
+
+        {/* ── Área de contenido scrollable ────────────────────── */}
+        <div className="flex-1 overflow-y-auto px-6 pb-2 mt-4">
           <Suspense fallback={<ContentLoader />}>
             {renderContent()}
           </Suspense>
         </div>
 
-        {/* Footer con navegación */}
-        {(hasPrev || hasNext) && (
-          <div className="flex justify-between items-center px-4 py-3 md:px-6
-                          border-t border-mid/20 shrink-0">
-            <button
-              onClick={onPrev}
-              disabled={!hasPrev}
-              className="flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-medium
-                         text-primary hover:bg-primary/10 disabled:opacity-30
-                         disabled:cursor-not-allowed active:scale-95 transition-all"
-            >
-              <ChevronLeft size={16} />
-              Anterior
-            </button>
-            <button
-              onClick={onNext}
-              disabled={!hasNext}
-              className="flex items-center gap-1.5 min-h-[44px] px-4 rounded-xl text-sm font-medium
-                         bg-primary text-tertiary hover:bg-secondary
-                         disabled:opacity-30 disabled:cursor-not-allowed
-                         active:scale-95 transition-all"
-            >
-              Siguiente
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
+        {/* ── §8.5 Footer de acción ───────────────────────────── */}
+        <div
+          className="flex items-center justify-between px-6 pt-5 pb-6
+                     border-t border-mid/15 shrink-0"
+        >
+          <button
+            onClick={onPrev}
+            disabled={!hasPrev}
+            className="flex items-center gap-1.5 text-sm font-medium text-secondary
+                       hover:text-primary transition-colors
+                       disabled:opacity-30 disabled:cursor-not-allowed"
+          >
+            <ArrowLeft size={14} />
+            Anterior
+          </button>
+
+          <button
+            onClick={() => { handleComplete(); onClose() }}
+            className="flex items-center gap-2 min-h-[48px] px-7 rounded-2xl
+                       bg-primary text-white font-semibold text-sm
+                       hover:bg-secondary active:scale-95 transition-all duration-200"
+          >
+            {content.type === 'quiz' ? 'Verificar y continuar' : 'Completar'}
+            <ArrowRight size={16} />
+          </button>
+        </div>
       </div>
     </div>,
     document.body

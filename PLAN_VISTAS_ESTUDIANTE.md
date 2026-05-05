@@ -2,8 +2,222 @@
 
 **Stack:** React 19 + TypeScript + Tailwind CSS 4 + Zustand 5 + TanStack Query 5 + React Router 7  
 **Ownership:** `src/domain/student/` + `src/presentation/features/student/`  
-**Tema:** Nightmares: Creepy Insomnia — `#060A0D` · `#223740` · `#58838C` · `#84B9BF` · `#AEEBF2`  
+**Tema:** Nightmares: Creepy Insomnia — `#060A0D` · `#223740` · `#5A878C` · `#84B9BF` · `#AEEBF2`  
 **Enfoque:** Mobile-first — diseñar primero para 320px y escalar hacia arriba
+
+---
+
+## ACTUALIZACIÓN DE ESTILOS — v2
+
+> Guía de diseño entregada por el equipo. Reemplaza los estilos genéricos del plan original.
+> Referencia completa en `STYLES.md`.
+
+### Cambios principales respecto al plan original
+
+| Elemento | Plan original | ✅ Nuevo diseño |
+|---|---|---|
+| Secondary | `#58838C` | `#5A878C` |
+| Dashboard stats | 3 cards oscuras (Activos/Promedio/Racha) | Hero banner + Weekly Goal ring + frase motivadora |
+| Course card | Thumbnail + título + barra + botón | Thumbnail con badge superpuesto + instructor + estado badge |
+| Quiz opciones | Lista vertical con radio buttons | Grid 2×2 con badge letra circular (A/B/C/D) |
+| Quiz top bar | Header del modal | Barra de pasos `X/Y` + botón cerrar |
+| Nav desktop | Top bar con links | Sidebar izquierdo fijo (patrón LMS) |
+| Botones | Solo Primary/Secondary | 4 variantes: Primary / Secondary / Inverted / Outlined |
+
+---
+
+### RE-ESTILIZADO: Dashboard (`StudentDashboardPage`)
+
+Reemplazar el layout actual por este orden de secciones:
+
+#### A — Hero Banner (bienvenida)
+```
+┌─────────────────────────────────────────────┐
+│  🔥 N Day Streak!                           │  pill badge bg-white/15
+│                                             │
+│  Buenos días, Ana.           (Headline XL)  │
+│  Tienes 3 cursos en progreso.               │
+│                                             │
+│  [ Continuar aprendiendo → ]                │  botón outlined blanco
+└─────────────────────────────────────────────┘
+bg-primary rounded-2xl p-8
+```
+
+```tsx
+// Hero card
+className="rounded-2xl bg-primary p-6 md:p-10 flex flex-col gap-4"
+
+// Badge racha
+className="flex items-center gap-1.5 px-3 py-1 rounded-full
+           bg-white/15 text-white text-xs font-semibold w-fit"
+
+// Headline
+className="text-2xl md:text-4xl font-extrabold text-white leading-tight"
+
+// CTA outlined blanco
+className="flex items-center gap-2 min-h-[44px] px-6 rounded-xl
+           border-2 border-white text-white font-semibold text-sm w-fit
+           hover:bg-white hover:text-primary transition-all duration-200"
+```
+
+#### B — Frase motivadora + métricas (reemplaza StatsBar)
+```
+┌────────────────────────────────────────┐
+│ ✨ "El secreto para avanzar es         │  frase del día
+│    empezar." — Mark Twain              │
+└────────────────────────────────────────┘
+┌───────────────────┐ ┌──────────────────┐
+│  ◯ ring  1/6      │ │  ◯ ring  54%     │
+│  Cursos completados│ │  Avance promedio │
+└───────────────────┘ └──────────────────┘
+```
+
+#### C — "Continuar donde lo dejaste" (Up Next card)
+Card horizontal estilo referencia de diseño:
+```tsx
+className="bg-surface rounded-2xl border border-mid/20 shadow-sm
+           p-5 flex items-center gap-4"
+// Play icon: bg-primary rounded-xl
+// Label "Continuar" en text-secondary uppercase tracking-wider text-xs
+// Título content-title font-bold
+// Meta: "Video · 12 min"
+```
+
+#### D — Grid de cursos (rediseñado)
+```tsx
+// Badge tipo superpuesto sobre thumbnail
+className="absolute top-2 left-2 flex items-center gap-1 px-2.5 py-1
+           rounded-full bg-white/90 backdrop-blur-sm
+           text-[11px] font-semibold text-primary"
+
+// Badges de estado (bajo el título)
+// "In Progress" → bg-secondary/15 text-secondary
+// "Locked"      → bg-mid/20 text-mid + ícono Lock
+// "Completado"  → bg-green-100 text-green-700 + ícono Check
+```
+
+---
+
+### RE-ESTILIZADO: Quiz (`QuizContent`)
+
+Reemplazar el layout actual del quiz por el diseño de la imagen de referencia:
+
+#### Barra de progreso por pasos (reemplaza header del modal en quiz)
+```tsx
+// Top bar dentro del quiz
+className="flex items-center gap-4 mb-8"
+
+// Botón X circular
+className="w-9 h-9 rounded-full bg-surface-muted text-secondary
+           hover:bg-mid/20 flex items-center justify-center shrink-0"
+
+// Track
+className="flex-1 h-2.5 rounded-full bg-mid/25 overflow-hidden"
+// Relleno: bg-primary, width = (currentQ/totalQ)*100%
+
+// Contador
+className="text-sm font-semibold text-secondary shrink-0"
+// Texto: "3/5"
+```
+
+#### Etiqueta de módulo
+```tsx
+className="text-xs font-bold text-secondary uppercase tracking-widest mb-2"
+// "MÓDULO 2: CONTROL DE FLUJO"
+```
+
+#### Pregunta
+```tsx
+className="text-2xl md:text-3xl font-extrabold text-primary leading-snug mb-3"
+// Instrucción debajo:
+className="text-sm text-secondary leading-relaxed"
+```
+
+#### Opciones A/B/C/D — Grid 2×2
+```tsx
+className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6"
+
+// Opción default
+className="flex items-center gap-3 p-4 rounded-2xl
+           bg-surface-muted border-2 border-transparent
+           cursor-pointer hover:border-secondary/40 hover:bg-secondary/5
+           active:scale-[0.98] transition-all duration-150"
+
+// Opción seleccionada
+className="... bg-secondary/10 border-2 border-secondary"
+
+// Opción correcta (feedback)
+className="... bg-green-50 border-2 border-green-500"
+
+// Opción incorrecta (feedback)
+className="... bg-red-50 border-2 border-red-400"
+
+// Badge letra (A/B/C/D)
+className="w-8 h-8 rounded-full bg-white border border-mid/30
+           flex items-center justify-center shrink-0
+           text-xs font-bold text-secondary"
+```
+
+#### Footer
+```tsx
+className="flex items-center justify-between mt-10 pt-6 border-t border-mid/15"
+
+// Skip
+className="text-sm font-medium text-secondary hover:text-primary transition-colors"
+
+// Check Answer
+className="flex items-center gap-2 min-h-[48px] px-7 rounded-2xl
+           bg-primary text-white font-semibold text-sm
+           hover:bg-secondary active:scale-95 transition-all"
+```
+
+---
+
+### RE-ESTILIZADO: Nav Desktop (sidebar)
+
+Cambiar el header desktop actual por un sidebar izquierdo fijo (patrón LMS):
+
+```tsx
+// Sidebar contenedor
+className="fixed left-0 top-0 h-full w-56 bg-surface border-r border-mid/20
+           flex flex-col z-40"
+
+// Nav principal — zona central scrollable
+// REGLA: flex-1 + min-h-0 + overflow-y-auto para que el scroll funcione en un flex container
+className="flex-1 min-h-0 overflow-y-auto px-3 py-4 space-y-0.5"
+
+// Zona inferior (perfil, logout, ayuda) — siempre visible, fija al fondo
+className="shrink-0 px-3 pb-5 pt-4 border-t border-mid/20"
+
+// Ítem activo
+className="flex items-center gap-3 px-3 py-2.5 rounded-lg
+           text-sm font-semibold text-primary bg-tertiary/30
+           border-r-2 border-primary"
+
+// Ítem inactivo
+className="flex items-center gap-3 px-3 py-2.5 rounded-lg
+           text-sm font-medium text-secondary hover:bg-primary/5 transition-colors"
+
+// Main content con sidebar: agregar ml-56 en md+
+className="pt-14 md:pt-0 md:ml-56 pb-20 md:pb-0"
+```
+
+---
+
+### Orden de re-estilizado (implementación)
+
+| # | Componente | Cambio |
+|---|------------|--------|
+| 1 | `globals.css` | Actualizar secondary a `#5A878C` |
+| 2 | `StudentDashboardPage` | Hero banner + restructurar secciones |
+| 3 | `StudentStatsBar` | Frase motivadora + rings de métricas |
+| 4 | `CourseCard` | Badge en thumbnail + instructor + estado badge |
+| 5 | `RecentCoursesBanner` | Estilo "Up Next" horizontal |
+| 6 | `QuizContent` | Grid 2×2 + badge letra + footer Skip/Check |
+| 7 | `StudentLayout` | Sidebar desktop (md+) |
+| 8 | `StudentHeader` | Adaptar para coexistir con sidebar |
+
+---
 
 ---
 
@@ -462,6 +676,48 @@ coloridos e iconográficos, conectados por caminos curvos punteados que fluyen c
 /student/courses/:courseId
 ```
 
+---
+
+### ⏳ Navegación directa al punto actual al entrar al mapa
+
+Al hacer clic en un curso desde el dashboard, el estudiante debe llegar directamente al nodo donde está (`current`), sin tener que hacer scroll manual.
+
+**Comportamiento esperado:**
+1. La página carga normalmente (mapa completo visible)
+2. Después del primer render, se hace scroll automático hasta el nodo `current`
+3. El nodo `current` queda centrado en pantalla o con un offset superior (~120px) para que el contexto anterior sea visible
+
+**Implementación sugerida:**
+
+```tsx
+// En CourseMapPage.tsx — después de que los círculos se midan con ResizeObserver
+const currentItem = flatItems.find(item => item.status === 'current')
+
+useEffect(() => {
+  if (!currentItem) return
+  const el = containerRef.current?.querySelector(
+    `[data-content-id="${currentItem.contentId}"]`
+  )
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}, [circles.length]) // solo cuando el layout ya se midió
+```
+
+> Alternativa más simple: añadir `data-content-id` a cada fila de nodo y usar `scrollIntoView` con `block: 'center'` una sola vez al montar.
+
+**Atributo a agregar en `ContentNodeRow`:**
+```tsx
+<div data-content-id={item.contentId} ...>
+```
+
+**Cuándo disparar el scroll:**
+- Una sola vez al entrar (no en cada re-render)
+- Después de que `circles.length > 0` (garantiza que el layout ya se pintó)
+- Usar `useRef(false)` como bandera para que solo corra una vez
+
+---
+
 ### Concepto Visual — Nodos con Íconos Grandes
 
 Cada nodo es un **círculo grande y colorido** (estilo "badge educativo") con:
@@ -643,7 +899,53 @@ function useCourseMap(modules: Module[], canvasWidth: number) {
 // Touch target: <circle r={r+10} fill="transparent" /> captura toda el área
 ```
 
-### Reglas de bloqueo (sin cambios)
+---
+
+### UX/UI — Estado actual y mejoras acordadas (v2)
+
+> Cambios implementados y pendientes respecto al diseño original del §2.
+
+#### Nodos de contenido (implementado)
+
+Cada contenido del módulo es su propio nodo (círculo + tarjeta) en el mapa — no los módulos completos.
+
+| Estado | Círculo | Tarjeta |
+|--------|---------|---------|
+| `completed` | Gris (`bg-gray-200`) + check gris. Clicable (permite repasar). | Fondo `gray-50`, borde `gray-200`, texto `gray-500`. Badge "Completado". |
+| `current` | Color del módulo. `outline` del mismo color con `outlineOffset: 3px`. Hover `scale-105`. | Borde `3px solid` color módulo + doble sombra. Franja de color arriba. Badge "Aquí estás". Botón "Continuar". |
+| `locked` | Gris claro + candado. `cursor-not-allowed`. No clicable. | Fondo `gray-50`. Badge "Bloqueado" con candado. `cursor-not-allowed`. |
+
+#### Línea SVG (implementado + pendiente de mejora)
+
+| Segmento | Estado actual | ⏳ Pendiente |
+|----------|---------------|-------------|
+| Completado | Sólida gris (`#9CA3AF`) | **Sólida con el color del módulo** correspondiente al nodo de origen |
+| Pendiente | Punteada gris claro (`#D1D5DB`, `dasharray="6 6"`) | Sin cambio — mantener gris punteado |
+
+> **Objetivo visual:** la línea coloreada muestra el camino ya recorrido hasta el nodo `current`. El estudiante ve de un vistazo cuánto ha avanzado dentro de cada módulo.
+
+#### Comportamiento del modal al completar (⏳ pendiente)
+
+Al hacer clic en "Siguiente" dentro del modal:
+1. Se marca el contenido actual como completado (`markContentComplete`)
+2. Se **cierra el modal** — el estudiante regresa a la hoja de ruta
+3. El mapa re-renderiza mostrando el nuevo nodo `current` y la línea avanzada
+4. El estudiante decide cuándo abrir el siguiente contenido desde el mapa
+
+> **Por qué:** permite que el estudiante vea el progreso visual (línea coloreada avanzando) después de cada contenido completado, reforzando la sensación de avance.
+
+#### Posicionamiento orgánico (implementado)
+
+Los nodos no están centrados — usan un array de 13 patrones `[leftFr, rightFr]` que varían la posición horizontal entre ~20% y ~80% del ancho. Esto crea un recorrido visual tipo "camino serpenteante". La tarjeta aparece en el lado con más espacio disponible.
+
+#### Progresión secuencial (implementado)
+
+```
+completedIds = ['c1', 'c2']  →  c1: completed, c2: completed, c3: current, c4+: locked
+```
+Una vez asignado `current`, todos los siguientes son `locked` sin importar el store — evita estados inválidos por datos corruptos.
+
+---
 
 ### Reglas de bloqueo
 
