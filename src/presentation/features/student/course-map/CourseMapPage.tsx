@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import {
   ArrowLeft, Check, Lock, Play,
-  FileText, Link2, MessageSquare, HelpCircle, Image as ImageIcon,
+  FileText, Link2, MessageSquare, HelpCircle, Image as ImageIcon, Table,
 } from 'lucide-react'
 import { useStudentProgressStore } from '@presentation/stores/studentProgressStore'
 import { ContentModal } from '../content-modal/ContentModal'
@@ -38,8 +38,10 @@ const MOCK_COURSE: Course = {
       contents: [
         { id: 'c10', title: 'Listas y tuplas',   order: 1, type: 'video' },
         { id: 'c11', title: 'Diccionarios',      order: 2, type: 'text'  },
-        { id: 'c12', title: 'Conjuntos',         order: 3, type: 'image' },
-        { id: 'c13', title: 'Quiz: Estructuras', order: 4, type: 'quiz'  },
+        { id: 'c12', title: 'Conjuntos',              order: 3, type: 'image' },
+        { id: 'c14', title: 'Guía de referencia PDF', order: 4, type: 'pdf'   },
+        { id: 'c15', title: 'Ejercicios en Excel',    order: 5, type: 'xlsx'  },
+        { id: 'c13', title: 'Quiz: Estructuras',      order: 6, type: 'quiz'  },
       ],
     },
   ],
@@ -58,6 +60,8 @@ const MOCK_CONTENT_DETAIL: Record<string, AnyContentData> = {
     ],
   },
   c12: { id: 'c12', title: 'Conjuntos', type: 'image', url: 'https://images.unsplash.com/photo-1544383835-bda2bc66a55d?w=800&q=80', alt: 'Diagrama de conjuntos', caption: 'Representación visual de conjuntos y sus operaciones' },
+  c14: { id: 'c14', title: 'Guía de referencia PDF', type: 'pdf',  url: '/docs/guia-python.pdf',            filename: 'guia-python.pdf'              },
+  c15: { id: 'c15', title: 'Ejercicios en Excel',    type: 'xlsx', url: '/docs/ejercicios-estructuras.xlsx', filename: 'ejercicios-estructuras.xlsx'   },
 }
 
 function getDefaultContent(id: string): AnyContentData {
@@ -532,6 +536,8 @@ const CONTENT_ICON: Record<string, React.ElementType> = {
   text:  FileText,
   quiz:  HelpCircle,
   image: ImageIcon,
+  pdf:   FileText,
+  xlsx:  Table,
 }
 
 function ContentCircle({ type, status, moduleIndex, onAction }: {

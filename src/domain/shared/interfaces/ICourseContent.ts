@@ -1,4 +1,4 @@
-export type ContentType = 'video' | 'image' | 'text' | 'quiz'
+export type ContentType = 'video' | 'image' | 'text' | 'quiz' | 'pdf' | 'xlsx'
 
 export interface Course {
   id: string
@@ -58,8 +58,22 @@ export interface QuizContentData extends ContentDetail {
   questions: QuizQuestion[]
 }
 
+export interface PdfContentData extends ContentDetail {
+  type: 'pdf'
+  url: string
+  filename?: string
+}
+
+export interface XlsxContentData extends ContentDetail {
+  type: 'xlsx'
+  url: string
+  filename?: string
+}
+
 export type AnyContentData =
   | VideoContentData
   | ImageContentData
   | TextContentData
   | QuizContentData
+  | PdfContentData
+  | XlsxContentData
