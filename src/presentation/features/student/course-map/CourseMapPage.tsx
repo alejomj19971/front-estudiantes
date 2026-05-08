@@ -70,20 +70,23 @@ const MODULE_COLORS = ['#5A878C', '#059669', '#7C3AED']
 /* ── Patrón de posición orgánica en desktop ─────────────────────────────── */
 // [leftFr, rightFr] → posición del círculo ≈ leftFr/(leftFr+rightFr)*100%
 const LAYOUT_PATTERNS: [number, number][] = [
-  [1, 3],  // ~25%
-  [3, 1],  // ~75%
+  [1, 9],  // ~10% — extremo izquierdo
+  [9, 1],  // ~90% — extremo derecho
   [1, 4],  // ~20%
-  [3, 2],  // ~60%
-  [1, 3],  // ~25%
+  [6, 1],  // ~86%
+  [2, 5],  // ~29%
+  [5, 1],  // ~83%
+  [1, 5],  // ~17%
   [4, 1],  // ~80%
-  [2, 3],  // ~40%
-  [3, 1],  // ~75%
-  [1, 4],  // ~20%
-  [2, 1],  // ~67%
   [1, 3],  // ~25%
-  [3, 2],  // ~60%
-  [1, 2],  // ~33%
+  [5, 2],  // ~71%
+  [1, 7],  // ~12%
+  [7, 1],  // ~88%
+  [3, 5],  // ~37%
 ]
+
+/* Espaciado vertical variado para camino orgánico (px) */
+const VERTICAL_GAPS = [56, 44, 72, 48, 64, 40, 68, 52, 44, 60, 48, 72, 52]
 
 /* ── Tipos ──────────────────────────────────────────────────────────────── */
 type ContentStatus = 'completed' | 'current' | 'locked'
@@ -435,9 +438,9 @@ export function CourseMapPage() {
             </div>
 
             <button className="w-full flex items-center justify-center gap-2 min-h-[44px]
-                               bg-surface border border-mid/20 rounded-2xl
-                               text-sm font-semibold text-secondary
-                               hover:bg-primary/5 hover:text-primary transition-colors">
+                               bg-tertiary/25 rounded-2xl
+                               text-sm font-semibold text-primary
+                               hover:bg-tertiary/40 transition-colors">
               <MessageSquare size={16} />
               Foro del curso
             </button>
@@ -488,6 +491,7 @@ function ModuleDivider({ title, index, color }: { title: string; index: number; 
 ══════════════════════════════════════════════════════════════════════════════ */
 function ContentNodeRow({ item, onAction }: { item: FlatItem; onAction: () => void }) {
   const [leftFr, rightFr] = LAYOUT_PATTERNS[item.globalIndex % LAYOUT_PATTERNS.length]
+  const gap        = VERTICAL_GAPS[item.globalIndex % VERTICAL_GAPS.length]
   const cardOnLeft = leftFr >= rightFr
   const circle     = <ContentCircle type={item.contentType} status={item.status} moduleIndex={item.moduleIndex} onAction={onAction} />
   const card       = <ContentCard item={item} onAction={onAction} />
@@ -496,7 +500,8 @@ function ContentNodeRow({ item, onAction }: { item: FlatItem; onAction: () => vo
     <>
       {/* Mobile: lineal */}
       <div data-content-id={item.contentId}
-           className="flex md:hidden items-start gap-3 pb-7 relative z-10">
+           className="flex md:hidden items-start gap-3 relative z-10"
+           style={{ marginBottom: `${gap * 0.6}px` }}>
         <div className="shrink-0 mt-1">{circle}</div>
         <div className="flex-1 min-w-0">{card}</div>
       </div>
@@ -504,8 +509,8 @@ function ContentNodeRow({ item, onAction }: { item: FlatItem; onAction: () => vo
       {/* Desktop: posición orgánica */}
       <div
         data-content-id={item.contentId}
-        className="hidden md:grid items-center mb-7 relative z-10"
-        style={{ gridTemplateColumns: `${leftFr}fr auto ${rightFr}fr`, gap: '12px' }}
+        className="hidden md:grid items-center relative z-10"
+        style={{ gridTemplateColumns: `${leftFr}fr auto ${rightFr}fr`, gap: '12px', marginBottom: `${gap}px` }}
       >
         <div className="flex justify-end">
           {cardOnLeft ? card : <span />}
